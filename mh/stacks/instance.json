@@ -1,0 +1,12 @@
+{
+  "namespace": "mh",
+  "title": "Minhajul Haq",
+  "description": "Minhajul Haq Pondok Pesantren Minhajul Haq",
+  "context": {
+    "name": "mh-khutwah-id",
+    "file": "mh/stack.yaml",
+    "host": "mh-instance.khutwah.id",
+    "user": "deploy",
+    "ssh_key": "MH_DEPLOY_KEY"
+  }
+}

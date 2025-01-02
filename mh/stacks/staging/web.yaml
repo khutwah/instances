@@ -1,0 +1,22 @@
+services:
+  mh-staging:
+    image: mh-staging-image
+    secrets:
+      - mh-staging-secret
+    environment:
+      - 'NEXT_PUBLIC_SKIP_MUMTAZ_LOGIN=true'
+      - 'DOTENV=/run/secrets/mh-staging-secret'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.mh-staging.rule=Host(`mh-staging.khutwah.id`)'
+      - 'traefik.http.routers.mh-staging.entrypoints=websecure'
+      - 'traefik.http.routers.mh-staging.tls.certresolver=acmeresolver'
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+    depends_on:
+      - reverse-proxy
+secrets:
+  mh-staging-secret:
+    external: true

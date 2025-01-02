@@ -1,0 +1,22 @@
+services:
+  mh-production:
+    image: mh-production-image
+    secrets:
+      - mh-production-secret
+    environment:
+      - 'NEXT_PUBLIC_SKIP_MUMTAZ_LOGIN=true'
+      - 'DOTENV=/run/secrets/mh-production-secret'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.mh-production.rule=Host(`mh.khutwah.id`)'
+      - 'traefik.http.routers.mh-production.entrypoints=websecure'
+      - 'traefik.http.routers.mh-production.tls.certresolver=acmeresolver'
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+    depends_on:
+      - reverse-proxy
+secrets:
+  mh-production-secret:
+    external: true

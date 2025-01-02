@@ -1,0 +1,36 @@
+name: deploy-mh
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'mh/**'
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get-revision.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - id: get-revision
+        run: |
+          echo "matrix={\"include\":[{\"name\":\"staging\",\"ref\":\"$(sed -z 's/\n$//' mh/stacks/staging/REVISION)\"},{\"name\":\"production\",\"ref\":\"$(sed -z 's/\n$//' mh/stacks/production/REVISION)\"}]}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: inspect
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.inspect.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: khutwah/khutwah-web
+          ref: ${{ matrix.ref }}
+          token: ${{ secrets.PULL_TOKEN }}
+      - run: |
+          make
+        env:
+          NAM: mh
+          SHA: ${{ matrix.ref }}
