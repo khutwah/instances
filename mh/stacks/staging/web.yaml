@@ -1,6 +1,7 @@
 services:
   mh-staging:
     image: ${STAGING_IMAGE}
+    hostname: '{{.Node.Hostname}}'
     secrets:
       - mh-staging-secret
     environment:

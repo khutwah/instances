@@ -1,6 +1,7 @@
 services:
   mh-production:
     image: ${PRODUCTION_IMAGE}
+    hostname: '{{.Node.Hostname}}'
     secrets:
       - mh-production-secret
     environment:
@@ -8,7 +9,7 @@ services:
       - 'DOTENV=/run/secrets/mh-production-secret'
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.mh-staging.rule=Host(`mh.khutwah.id`) || Host(`mh.khutwah.id`)'
+      - 'traefik.http.routers.mh-production.rule=Host(`mh.khutwah.id`) || Host(`mtmh.khutwah.id`)'
       - 'traefik.http.routers.mh-production.entrypoints=websecure'
       - 'traefik.http.routers.mh-production.tls.certresolver=acmeresolver'
     deploy:
