@@ -44,7 +44,7 @@ jobs:
           NAM: ${{ inputs.namespace }}
           ENV: ${{ matrix.name }}
           REF: ${{ matrix.ref }}
-          PRE: ${{ matrix.name == 'production' && 'prod-' || 'stag-' }}
+          PRE: ${{ matrix.name == 'production' && 'prod' || 'stag' }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -56,6 +56,7 @@ jobs:
       - run: |
           docker stack config -c common/stacks/reverse-proxy.yaml \
               -c ${{ inputs.namespace }}/stacks/staging/web.yaml \
+              -c ${{ inputs.namespace }}/stacks/production/web.yaml \
               > ${{ inputs.namespace }}/stack.yaml
           sed -i '1d' ${{ inputs.namespace }}/stack.yaml
         env:
