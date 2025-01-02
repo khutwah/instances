@@ -57,13 +57,15 @@ jobs:
           cmd: |
             yq -i '.services.staging.image = env(STAGING)' ${{ inputs.namespace }}/stacks/staging/web.yaml
             yq -i '.services.production.image = env(PRODUCTION)' ${{ inputs.namespace }}/stacks/production/web.yaml
-            docker stack confiig -c common/stacks/reverse-proxy.yaml \
-              -c ${{ inputs.namespace }}/stacks/staging/web.yaml \
-              -c ${{ inputs.namespace }}/stacks/production/web.yaml \
-              > ${{ inputs.namespace }}/stack.yaml
         env:
           STAGING: ttl.sh/${{ inputs.namespace }}-staging-khutwah-id-${{ inputs.staging }}:1h
           PRODUCTION: ttl.sh/${{ inputs.namespace }}-production-khutwah-id-${{ inputs.production }}:1h
+
+      - run: |
+          docker stack config -c common/stacks/reverse-proxy.yaml \
+              -c ${{ inputs.namespace }}/stacks/staging/web.yaml \
+              -c ${{ inputs.namespace }}/stacks/production/web.yaml \
+              > ${{ inputs.namespace }}/stack.yaml
 
       # TODO(dio): Add check to the required secrets.
 
