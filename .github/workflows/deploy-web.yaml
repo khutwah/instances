@@ -26,7 +26,7 @@ jobs:
           echo "production=$(sed -z 's/\n$//' ${{ inputs.namespace }}/stacks/production/REVISION)" >> $GITHUB_OUTPUT
       - id: get-revision
         run: |
-          echo "matrix={\"include\":[{\"name\":\"staging\",\"ref\":\"${{ inputs.staging || steps.get-ref.output.staging }}\"},{\"name\":\"production\",\"ref\":\"${{ inputs.production || steps.get-ref.output.production }}\"}]}" >> $GITHUB_OUTPUT
+          echo "matrix={\"include\":[{\"name\":\"staging\",\"ref\":\"${{ inputs.staging || steps.get-ref.outputs.staging }}\"},{\"name\":\"production\",\"ref\":\"${{ inputs.production || steps.get-ref.outputs.production }}\"}]}" >> $GITHUB_OUTPUT
 
   build:
     needs: inspect
