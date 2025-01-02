@@ -15,8 +15,8 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     outputs:
-      title: ${{ steps.get-ref.outputs.staging-title }}
-      description: ${{ steps.get-ref.outputs.staging-description }}
+      title: ${{ steps.get-metadata.outputs.staging-title }}
+      description: ${{ steps.get-metadata.outputs.staging-description }}
       staging: ${{ steps.get-ref.outputs.staging }}
       production: ${{ steps.get-ref.outputs.production }}
       matrix: ${{ steps.get-revision.outputs.matrix }}
