@@ -1,59 +1,73 @@
 name: deploy-web
 
 on:
-  workflow_dispatch:
-    inputs:
-      namespace:
-        type: string
-        required: true
-      web_sha:
-        type: string
-        required: true
-
   workflow_call:
     inputs:
       namespace:
         type: string
         required: true
-      production_sha:
+      production:
         type: string
-        required: true
-      staging_sha:
+      staging:
         type: string
-        required: true
 
 jobs:
-  deploy-web:
+  inspect:
     runs-on: ubuntu-latest
+    outputs:
+      staging: ${{ steps.get-ref.outputs.staging }}
+      production: ${{ steps.get-ref.outputs.production }}
+      matrix: ${{ steps.get-revision.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - id: get-ref
+        run: |
+          echo "staging=$(sed -z 's/\n$//' ${{ inputs.namespace }}/stacks/staging/REVISION)" >> $GITHUB_OUTPUT
+          echo "production=$(sed -z 's/\n$//' ${{ inputs.namespace }}/stacks/production/REVISION)" >> $GITHUB_OUTPUT
+      - id: get-revision
+        run: |
+          echo "matrix={\"include\":[{\"name\":\"staging\",\"ref\":\"${{ inputs.staging || steps.get-ref.output.staging }}\"},{\"name\":\"production\",\"ref\":\"${{ inputs.production || steps.get-ref.output.production }}\"}]}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: inspect
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.inspect.outputs.matrix) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          repository: khutwah/web
-          ref: ${{ inputs.sha }}
+          repository: khutwah/khutwah-web
+          ref: ${{ matrix.ref }}
           token: ${{ secrets.PULL_TOKEN }}
       - run: make
         env:
           NAM: ${{ inputs.namespace }}
+          ENV: ${{ matrix.name }}
+          REF: ${{ matrix.ref }}
 
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          path: instances
       - uses: mikefarah/yq@f73c862cc555c0d98d3ac3120a79ec25fdda9837 # master@27-12-2024
         with:
           cmd: |
-            yq -i '.services.staging.image = env(IMAGE)' instances/${{ namespace }}/stacks/staging/web.yaml
-            yq -i '.services.production.image = env(IMAGE)' instances/${{ namespace }}/stacks/production/web.yaml
+            yq -i '.services.staging.image = env(STAGING)' ${{ inputs.namespace }}/stacks/staging/web.yaml
+            yq -i '.services.production.image = env(PRODUCTION)' ${{ inputs.namespace }}/stacks/production/web.yaml
             docker stack confiig -c common/stacks/reverse-proxy.yaml \
-              -c instances/${{ namespace }}/stacks/staging/web.yaml \
-              -c instances/${{ namespace }}/stacks/production/web.yaml \
-              > instances/${{ namespace }}/stack.yaml
-
+              -c ${{ inputs.namespace }}/stacks/staging/web.yaml \
+              -c ${{ inputs.namespace }}/stacks/production/web.yaml \
+              > ${{ inputs.namespace }}/stack.yaml
         env:
-          IMAGE: ttl.sh/${{ inputs.namespace }}-khutwah-id-${{ inputs.sha }}:1h
-      # - uses: cssnr/stack-deploy-action@1dae9f655527e6a141122886ae64e24afb6d6274 # master@27-12-2024
-      #   with:
-      #     name: ${{ inputs.namespace }}-khutwah-id
-      #     file: instances/${{ inputs.namespace }}/stack.yaml
-      #     host: ${{ inputs.namespace }}-instance.khutwah.id
-      #     user: deploy
-      #     ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          STAGING: ttl.sh/${{ inputs.namespace }}-staging-khutwah-id-${{ inputs.staging }}:1h
+          PRODUCTION: ttl.sh/${{ inputs.namespace }}-production-khutwah-id-${{ inputs.production }}:1h
+
+      # TODO(dio): Add check to the required secrets.
+
+      - uses: cssnr/stack-deploy-action@1dae9f655527e6a141122886ae64e24afb6d6274 # master@27-12-2024
+        with:
+          name: ${{ inputs.namespace }}-khutwah-id
+          file: ${{ inputs.namespace }}/stack.yaml
+          host: ${{ inputs.namespace }}-instance.khutwah.id
+          user: deploy
+          ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}

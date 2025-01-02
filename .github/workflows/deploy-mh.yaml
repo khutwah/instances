@@ -7,31 +7,21 @@ on:
     paths:
       - 'mh/**'
 
-jobs:
-  inspect:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.get-revision.outputs.matrix }}
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - id: get-revision
-        run: |
-          echo "matrix={\"include\":[{\"name\":\"staging\",\"ref\":\"$(sed -z 's/\n$//' mh/stacks/staging/REVISION)\"},{\"name\":\"production\",\"ref\":\"$(sed -z 's/\n$//' mh/stacks/production/REVISION)\"}]}" >> $GITHUB_OUTPUT
+  workflow_dispatch:
+    inputs:
+      production:
+        type: string
+      staging:
+        type: string
 
-  build:
-    needs: inspect
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJson(needs.inspect.outputs.matrix) }}
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: khutwah/khutwah-web
-          ref: ${{ matrix.ref }}
-          token: ${{ secrets.PULL_TOKEN }}
-      - run: |
-          make
-        env:
-          NAM: mh
-          ENV: ${{ matrix.name }}
-          SHA: ${{ matrix.ref }}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    uses: './.github/workflows/deploy-web.yaml'
+    with:
+      namespace: mh
+      staging: ${{ inputs.staging }}
+      production: ${{ inputs.production }}
