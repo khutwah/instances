@@ -1,6 +1,6 @@
 # `mh`
 
-`mh` deploys on:
+`mh` deploys on (biznetgio):
 
 ```
 mh-instance.khutwah.id.	1	IN	A	103.196.153.98
