@@ -44,7 +44,7 @@ jobs:
           NAM: ${{ inputs.namespace }}
           ENV: ${{ matrix.name }}
           REF: ${{ matrix.ref }}
-          PRE: ${{ matrix.name === 'production' && 'prod-' || 'stag-' }}
+          PRE: ${{ matrix.name == 'production' && 'prod-' || 'stag-' }}
 
   deploy:
     runs-on: ubuntu-latest
