@@ -52,22 +52,18 @@ jobs:
       - build
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: mikefarah/yq@f73c862cc555c0d98d3ac3120a79ec25fdda9837 # master@27-12-2024
-        with:
-          cmd: |
-            yq -i '.services.staging.image = env(STAGING)' ${{ inputs.namespace }}/stacks/staging/web.yaml
-            yq -i '.services.production.image = env(PRODUCTION)' ${{ inputs.namespace }}/stacks/production/web.yaml
-            docker stack confiig -c common/stacks/reverse-proxy.yaml \
+      - run: |
+          docker stack config -c common/stacks/reverse-proxy.yaml \
               -c ${{ inputs.namespace }}/stacks/staging/web.yaml \
-              -c ${{ inputs.namespace }}/stacks/production/web.yaml \
               > ${{ inputs.namespace }}/stack.yaml
+          sed -i '1d' ${{ inputs.namespace }}/stack.yaml
         env:
-          STAGING: ttl.sh/${{ inputs.namespace }}-staging-khutwah-id-${{ inputs.staging }}:1h
-          PRODUCTION: ttl.sh/${{ inputs.namespace }}-production-khutwah-id-${{ inputs.production }}:1h
+          STAGING_IMAGE: ttl.sh/${{ inputs.namespace }}-staging-khutwah-id-${{ inputs.staging }}:1h
+          PRODUCTION_IMAGE: ttl.sh/${{ inputs.namespace }}-production-khutwah-id-${{ inputs.production }}:1h
 
       # TODO(dio): Add check to the required secrets.
 
-      - uses: cssnr/stack-deploy-action@1dae9f655527e6a141122886ae64e24afb6d6274 # master@27-12-2024
+      - uses: dio/stack-deploy-action@752338c6ac902a95dee2ebce5b25e4f1ba4a3b3c # master@27-12-2024
         with:
           name: ${{ inputs.namespace }}-khutwah-id
           file: ${{ inputs.namespace }}/stack.yaml

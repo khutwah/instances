@@ -1,6 +1,7 @@
 services:
   reverse-proxy:
-    image: traefik:v3.1
+    image: traefik:v3.2
+    hostname: '{{.Node.Hostname}}'
     command:
       - '--log.level=INFO'
       - '--providers.docker=true'
@@ -17,7 +18,7 @@ services:
       - '443:443'
     volumes:
       - 'letsencrypt:/letsencrypt'
-      - '/var/run/docker.sock:/var/run/docker.sock'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
 
 volumes:
   letsencrypt:
