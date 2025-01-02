@@ -51,8 +51,8 @@ jobs:
           ENV: ${{ matrix.name }}
           REF: ${{ matrix.ref }}
           PRE: ${{ matrix.name == 'production' && 'prod' || 'stag' }}
-          TITLE: "${{ needs.inspect.outputs.title }}"
-          DESCRIPTION: "${{ needs.inspect.outputs.description }}"
+          TITLE: ${{ needs.inspect.outputs.title }}
+          DESCRIPTION: ${{ needs.inspect.outputs.description }}
 
   deploy:
     runs-on: ubuntu-latest
