@@ -51,8 +51,8 @@ jobs:
           ENV: ${{ matrix.name }}
           REF: ${{ matrix.ref }}
           PRE: ${{ matrix.name == 'production' && 'prod' || 'stag' }}
-          TITLE: ${{ steps.inspect.outputs.title }}
-          DESCRIPTION: ${{ steps.inspect.outputs.description }}
+          TITLE: "${{ needs.inspect.outputs.title }}"
+          DESCRIPTION: "${{ needs.inspect.outputs.description }}"
 
   deploy:
     runs-on: ubuntu-latest
@@ -73,7 +73,7 @@ jobs:
 
       # TODO(dio): Add check to the required secrets.
 
-      - uses: dio/stack-deploy-action@752338c6ac902a95dee2ebce5b25e4f1ba4a3b3c # master@27-12-2024
+      - uses: dio/stack-deploy-action@752338c6ac902a95dee2ebce5b25e4f1ba4a3b3c # master@02-01-2025
         with:
           name: ${{ inputs.namespace }}-khutwah-id
           file: ${{ inputs.namespace }}/stack.yaml
