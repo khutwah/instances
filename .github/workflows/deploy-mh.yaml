@@ -33,4 +33,5 @@ jobs:
           make
         env:
           NAM: mh
+          ENV: ${{ matrix.name }}
           SHA: ${{ matrix.ref }}
