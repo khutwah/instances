@@ -17,6 +17,12 @@ jobs:
     outputs:
       staging: ${{ steps.get-ref.outputs.staging }}
       production: ${{ steps.get-ref.outputs.production }}
+
+      staging-title: ${{ steps.get-ref.outputs.staging-title }}
+      production-title: ${{ steps.get-ref.outputs.production-title }}
+      staging-description: ${{ steps.get-ref.outputs.staging-description }}
+      production-description: ${{ steps.get-ref.outputs.production-description }}
+
       matrix: ${{ steps.get-revision.outputs.matrix }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -27,6 +33,12 @@ jobs:
       - id: get-revision
         run: |
           echo "matrix={\"include\":[{\"name\":\"staging\",\"ref\":\"${{ inputs.staging || steps.get-ref.outputs.staging }}\"},{\"name\":\"production\",\"ref\":\"${{ inputs.production || steps.get-ref.outputs.production }}\"}]}" >> $GITHUB_OUTPUT
+      - id: get-metadata
+        run: |
+          echo "staging-title=$(grep '^title=' mh/stacks/staging/METADATA | sed 's/title="//' | sed 's/"//g')" >> $GITHUB_OUTPUT
+          echo "staging-description=$(grep '^description=' mh/stacks/staging/METADATA | sed 's/description="//' | sed 's/"//g')" >> $GITHUB_OUTPUT
+          echo "production-title=$(grep '^title=' mh/stacks/production/METADATA | sed 's/title="//' | sed 's/"//g')" >> $GITHUB_OUTPUT
+          echo "production-description=$(grep '^description=' mh/stacks/production/METADATA | sed 's/description="//' | sed 's/"//g')" >> $GITHUB_OUTPUT
 
   build:
     needs: inspect
@@ -45,6 +57,8 @@ jobs:
           ENV: ${{ matrix.name }}
           REF: ${{ matrix.ref }}
           PRE: ${{ matrix.name == 'production' && 'prod' || 'stag' }}
+          TITLE: ${{ matrix.name == 'production' && steps.inspect.outputs.production-title || steps.inspect.outputs.staging-title }}
+          DESCRIPTION: ${{ matrix.name == 'production' && steps.inspect.outputs.production-description || steps.inspect.outputs.staging-description }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -60,8 +74,8 @@ jobs:
               > ${{ inputs.namespace }}/stack.yaml
           sed -i '1d' ${{ inputs.namespace }}/stack.yaml
         env:
-          STAGING_IMAGE: ttl.sh/${{ inputs.namespace }}-staging-khutwah-id-${{ inputs.staging }}:1h
-          PRODUCTION_IMAGE: ttl.sh/${{ inputs.namespace }}-production-khutwah-id-${{ inputs.production }}:1h
+          STAGING_IMAGE: ttl.sh/${{ inputs.namespace }}-staging-khutwah-id-${{ inputs.staging || needs.inspect.outputs.staging}}:1h
+          PRODUCTION_IMAGE: ttl.sh/${{ inputs.namespace }}-production-khutwah-id-${{ inputs.production || needs.inspect.outputs.production }}:1h
 
       # TODO(dio): Add check to the required secrets.
 
