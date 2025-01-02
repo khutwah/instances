@@ -22,7 +22,7 @@ jobs:
       matrix: ${{ steps.get-revision.outputs.matrix }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-- id: get-metadata
+      - id: get-metadata
         run: |
           echo "title=$(grep '^title=' ${{ inputs.namespace }}/METADATA | sed 's/title="//' | sed 's/"//g')" >> $GITHUB_OUTPUT
           echo "description=$(grep '^description=' ${{ inputs.namespace }}/METADATA | sed 's/description="//' | sed 's/"//g')" >> $GITHUB_OUTPUT
