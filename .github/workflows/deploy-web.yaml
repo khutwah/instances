@@ -66,6 +66,7 @@ jobs:
               -c ${{ inputs.namespace }}/stacks/staging/web.yaml \
               -c ${{ inputs.namespace }}/stacks/production/web.yaml \
               > ${{ inputs.namespace }}/stack.yaml
+          sed -i '1d' filename ${{ inputs.namespace }}/stack.yaml
 
       # TODO(dio): Add check to the required secrets.
 
