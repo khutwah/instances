@@ -1,6 +1,6 @@
 services:
   mh-staging:
-    image: mh-staging-image
+    image: ${STAGING_IMAGE}
     secrets:
       - mh-staging-secret
     environment:
@@ -8,7 +8,7 @@ services:
       - 'DOTENV=/run/secrets/mh-staging-secret'
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.mh-staging.rule=Host(`mh-staging.khutwah.id`)'
+      - 'traefik.http.routers.mh-staging.rule=Host(`mh-staging.khutwah.id`) || Host(`mtmh-staging.khutwah.id`)'
       - 'traefik.http.routers.mh-staging.entrypoints=websecure'
       - 'traefik.http.routers.mh-staging.tls.certresolver=acmeresolver'
     deploy:
